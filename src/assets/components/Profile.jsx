@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "./context/AuthProvider";
+import { AuthContext } from "../../assets/components/context/AuthProvider"; 
 
 const Profile = () => {
   const { user, token, fetchProfile, updateProfile } = useContext(AuthContext);
@@ -10,17 +10,31 @@ const Profile = () => {
 
   useEffect(() => {
     if (!token) navigate("/");
-    if (user) setProfile({ name: user.name || "", email: user.email || "", bio: user.bio || "", avatar: user.avatar || "" });
+    if (user) {
+      setProfile({
+        name: user.name || "",
+        email: user.email || "",
+        bio: user.bio || "",
+        avatar: user.avatar || "",
+      });
+    }
   }, [user, token, navigate]);
 
-  const handleChange = (e) => setProfile({ ...profile, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const updatedProfile = await updateProfile({ name: profile.name, email: profile.email, bio: profile.bio });
-      await fetchProfile();
-      setProfile({ ...updatedProfile, avatar: updatedProfile.avatar || profile.avatar });
+      const updatedProfile = await updateProfile({
+        name: profile.name,
+        email: profile.email,
+        bio: profile.bio,
+      });
+
+      await fetchProfile(); // ✅ Ambil ulang data user setelah update
+      setProfile((prev) => ({ ...prev, ...updatedProfile }));
       setIsEditing(false);
     } catch (error) {
       console.error("Update profile failed:", error);
@@ -43,7 +57,10 @@ const Profile = () => {
           <div>
             <h2 className="text-xl font-semibold">{profile.name}</h2>
           </div>
-          <button onClick={() => setIsEditing(true)} className="ml-auto px-4 py-2 bg-indigo-600 rounded text-white hover:bg-indigo-500">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="ml-auto px-4 py-2 bg-indigo-600 rounded text-white hover:bg-indigo-500"
+          >
             Edit User Profile
           </button>
         </div>
@@ -53,7 +70,10 @@ const Profile = () => {
               <p className="text-gray-400 text-sm">Display Name</p>
               <p className="text-white">{profile.name}</p>
             </div>
-            <button onClick={() => setIsEditing(true)} className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+            >
               Edit
             </button>
           </div>
@@ -62,7 +82,10 @@ const Profile = () => {
               <p className="text-gray-400 text-sm">Email</p>
               <p className="text-white">{profile.email.replace(/(.{2}).+(@.+)/, "$1******$2")}</p>
             </div>
-            <button onClick={() => setIsEditing(true)} className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+            >
               Edit
             </button>
           </div>
@@ -71,25 +94,56 @@ const Profile = () => {
               <p className="text-gray-400 text-sm">Bio</p>
               <p className="text-white">{profile.bio || "No bio available"}</p>
             </div>
-            <button onClick={() => setIsEditing(true)} className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+            >
               Edit
             </button>
           </div>
         </div>
       </div>
+
       {isEditing && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
             <h3 className="text-lg font-semibold text-white mb-4">Edit Profile</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <input type="text" name="name" value={profile.name} onChange={handleChange} placeholder="Name" className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-white" />
-              <input type="email" name="email" value={profile.email} onChange={handleChange} placeholder="Email" className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-white" />
-              <textarea name="bio" value={profile.bio} onChange={handleChange} placeholder="Bio" className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-white"></textarea>
+              <input
+                type="text"
+                name="name"
+                value={profile.name}
+                onChange={handleChange}
+                placeholder="Name"
+                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-white"
+              />
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-white"
+              />
+              <textarea
+                name="bio"
+                value={profile.bio}
+                onChange={handleChange}
+                placeholder="Bio"
+                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-white"
+              ></textarea>
               <div className="flex justify-end gap-4">
-                <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 bg-red-600 rounded text-white hover:bg-red-500">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-4 py-2 bg-red-600 rounded text-white hover:bg-red-500"
+                >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-500">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-500"
+                >
                   Save
                 </button>
               </div>

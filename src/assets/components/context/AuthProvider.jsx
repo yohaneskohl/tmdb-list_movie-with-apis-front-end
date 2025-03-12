@@ -1,54 +1,31 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import React, { createContext, useState, useEffect, useCallback, useRef } from "react";
+import { apiClient, authClient } from "../../../utils/apiClient";
+import { GET_DATA_AUTH } from "../../../services/auth/get-data-auth";
+import { showToast } from "../../css/toastify";
 
-const BASE_AUTH = process.env.REACT_APP_BASE_AUTH;
-const BASE_BACKEND_URL = process.env.REACT_APP_BASE_BACKEND_URL;
-
-// Deklarasi Context dengan nama yang benar
 export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [loading, setLoading] = useState(true);
+  const hasFetchedProfile = useRef(false);
 
-  // Fungsi untuk mengambil profil user dari API
+  // Fetch Profile
   const fetchProfile = useCallback(async () => {
-    if (!token) return;
+    if (!token || hasFetchedProfile.current) return;
 
     try {
-      const response = await axios.get(`${BASE_BACKEND_URL}/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setUser(response.data.data); // Simpan data user ke state
+      hasFetchedProfile.current = true;
+      const response = await apiClient.get(GET_DATA_AUTH.PROFILE);
+      setUser(response.data.data);
     } catch (error) {
-      console.error("Failed to fetch profile:", error);
+      showToast("Failed to fetch profile", "error");
+      console.error("Error fetching profile:", error);
     }
   }, [token]);
 
-  // Fungsi untuk memperbarui profil user
-  const updateProfile = async (updatedData) => {
-    if (!token) return;
 
-    try {
-      console.log("Mengirim data update ke backend:", updatedData);
-      console.log("Token yang digunakan:", token);
-
-      const response = await axios.put(`${BASE_BACKEND_URL}/profile`, updatedData, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
-
-      console.log("Profil berhasil diperbarui:", response.data);
-      setUser(response.data.data);
-      return response.data.data;
-    } catch (error) {
-      console.error("Gagal update profile:", error.response?.data || error);
-      throw new Error(error.response?.data?.message || "Update failed");
-    }
-  };
-
-  // Cek autentikasi saat aplikasi dijalankan
   useEffect(() => {
     const checkAuth = async () => {
       if (!token) {
@@ -58,14 +35,9 @@ const AuthProvider = ({ children }) => {
 
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_AUTH}/authenticate`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setUser(response.data.data);
-        await fetchProfile(); // Ambil profil setelah autentikasi sukses
+        await fetchProfile();
       } catch (error) {
-        logout(); // Logout jika token tidak valid
+        logout();
       } finally {
         setLoading(false);
       }
@@ -74,29 +46,44 @@ const AuthProvider = ({ children }) => {
     checkAuth();
   }, [token, fetchProfile]);
 
-  // Fungsi Login
+  // Login (Menggunakan authClient)
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${BASE_AUTH}/login`, { email, password });
-      const { token, user } = response.data.data;
+      const response = await authClient.post(GET_DATA_AUTH.LOGIN, { email, password });
+      const { token } = response.data.data;
 
-      setUser(user);
       setToken(token);
       localStorage.setItem("token", token);
+      hasFetchedProfile.current = false;
+      await fetchProfile();
 
-      await fetchProfile(); // Ambil profil setelah login
+      showToast("Login successful!", "success");
       window.dispatchEvent(new Event("authChange"));
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Login failed");
+      showToast(error.response?.data?.message || "Login failed", "error");
     }
   };
 
-  // Fungsi Logout
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await apiClient.put("/profile", profileData); // ✅ Sesuaikan endpoint
+      showToast("Profile updated successfully!", "success");
+      return response.data.data; 
+    } catch (error) {
+      console.error("Update profile error:", error.response?.data || error);
+      showToast(error.response?.data?.message || "Failed to update profile!", "error");
+      throw error;
+    }
+  };
+  
+  // Logout
   const logout = () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("token");
+    hasFetchedProfile.current = false;
     window.dispatchEvent(new Event("authChange"));
+    showToast("Logged out successfully", "info");
   };
 
   return (

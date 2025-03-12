@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { searchMoviesAndTVShows } from "../utils/http";
+import { searchMoviesAndTVShows } from "../services/tmdb/tmdbService";
 import MovieCard from "../assets/components/MovieCard";
 import TVShowCard from "../assets/components/TVShowCard";
 

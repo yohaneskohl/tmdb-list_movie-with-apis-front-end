@@ -1,6 +1,6 @@
 import axios from "axios";
-import { GET_DATA_MOVIES } from "../services/movies/get-data-movies";
-import { GET_DATA_TVSHOWS } from "../services/tvshows/get-data-tvshows";
+import { GET_DATA_MOVIES } from "../services/tmdb/movies/get-data-movies";
+import { GET_DATA_TVSHOWS } from "../services/tmdb/tvshows/get-data-tvshows";
 
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const BASE_MOVIE_URL = process.env.REACT_APP_BASE_MOVIE_URL;

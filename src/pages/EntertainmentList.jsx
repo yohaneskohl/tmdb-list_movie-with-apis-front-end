@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchNowPlayingMovies, fetchOnTheAirTVShows } from "../utils/http";
+import { fetchNowPlayingMovies, fetchOnTheAirTVShows } from "../services/tmdb/tmdbService"; 
 import MovieCard from "../assets/components/MovieCard";
 import MovieSlider from "../assets/components/MovieSlider";
 import Pagination from "../assets/components/Pagination";
