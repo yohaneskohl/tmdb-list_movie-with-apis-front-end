@@ -1,4 +1,5 @@
 import axios from "axios";
+import { CookieStorage, CookieKeys } from "./Cookies";
 
 const BASE_BACKEND_URL = process.env.REACT_APP_BASE_BACKEND_URL;
 const BASE_AUTH_URL = process.env.REACT_APP_BASE_AUTH;
@@ -23,7 +24,8 @@ export const authClient = axios.create({
 
 // Interceptor untuk menambahkan token ke `apiClient`
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = CookieStorage.get(CookieKeys.AuthToken);
+  console.log("Interceptor - Token:", token); // ✅ Debug token sebelum request
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -1,24 +1,23 @@
 import Cookies from "universal-cookie";
+import { getExpirationDate } from "./expirationUtils"; // ✅ Import fungsi expiration
 
-// Inisialisasi cookie instance
 const cookies = new Cookies();
 
-// Kunci untuk menyimpan data di cookies
 export const CookieKeys = {
   AuthToken: "authToken",
   User: "user",
-  LimitError: 100,
 };
 
-// Opsi default untuk penyimpanan cookie
 const CookieOptions = {
   path: "/",
   secure: true,
+  sameSite: "Strict",
 };
 
 export const CookieStorage = {
   set: (key, data, options = {}) => {
-    return cookies.set(key, data, { ...CookieOptions, ...options });
+    const expires = getExpirationDate(options.expiresInHours || 24); // ✅ Default 24 jam
+    return cookies.set(key, data, { ...CookieOptions, expires, ...options });
   },
 
   get: (key, options = {}) => {
