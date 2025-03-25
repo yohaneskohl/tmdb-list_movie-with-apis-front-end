@@ -3,7 +3,7 @@ import { apiClient, authClient } from "../../../utils/apiClient";
 import { GET_DATA_AUTH } from "../../../services/auth/get-data-auth";
 import { showToast } from "../../css/toastify";
 import { CookieStorage, CookieKeys } from "../../../utils/Cookies";
-import { getExpirationDate } from "../../../utils/expirationUtils"; // ✅ Pisahkan expiration
+import { getExpirationDate } from "../../../utils/expirationUtils";
 
 export const AuthContext = createContext();
 
@@ -17,14 +17,11 @@ const AuthProvider = ({ children }) => {
   const fetchProfile = useCallback(async () => {
     if (!token || hasFetchedProfile.current) return;
 
-    console.log("Fetching profile with token:", token);
-
     try {
       hasFetchedProfile.current = true;
       const response = await apiClient.get(GET_DATA_AUTH.PROFILE);
-      console.log("Profile data:", response.data.data);
       setUser(response.data.data);
-      CookieStorage.set(CookieKeys.User, response.data.data, { expires: getExpirationDate(12) }); // ✅ 12 jam
+      CookieStorage.set(CookieKeys.User, response.data.data, { expires: getExpirationDate(12) });
     } catch (error) {
       console.error("Error fetching profile:", error.response?.data || error);
       showToast("Failed to fetch profile", "error");
@@ -32,25 +29,27 @@ const AuthProvider = ({ children }) => {
   }, [token]);
 
   // Cek autentikasi saat aplikasi pertama kali dibuka
+  const checkAuth = useCallback(async () => {
+    const savedToken = CookieStorage.get(CookieKeys.AuthToken);
+    if (!savedToken) {
+      setUser(null);
+      setToken(null);
+      setLoading(false);
+      return;
+    }
+
+    setToken(savedToken);
+    await fetchProfile();
+    setLoading(false);
+  }, [fetchProfile]);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        await fetchProfile();
-      } catch (error) {
-        logout();
-      } finally {
-        setLoading(false);
-      }
-    };
-
     checkAuth();
-  }, [token, fetchProfile]);
+
+    // Tambahkan event listener untuk perubahan autentikasi
+    window.addEventListener("authChange", checkAuth);
+    return () => window.removeEventListener("authChange", checkAuth);
+  }, [checkAuth]);
 
   // Login
   const login = async (email, password) => {
@@ -58,18 +57,46 @@ const AuthProvider = ({ children }) => {
       const response = await authClient.post(GET_DATA_AUTH.LOGIN, { email, password });
       const { token } = response.data.data;
 
-      console.log("Token received:", token);
-
       setToken(token);
-      CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) }); // ✅ Expire 12 jam
+      CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) });
 
       hasFetchedProfile.current = false;
       await fetchProfile();
       showToast("Login successful!", "success");
+
+      // Memicu event agar navbar terupdate
       window.dispatchEvent(new Event("authChange"));
     } catch (error) {
       console.error("Login error:", error.response?.data || error);
       showToast(error.response?.data?.message || "Login failed", "error");
+    }
+  };
+
+  // Login dengan Google (dipanggil setelah redirect)
+  const handleGoogleAuth = useCallback(async () => {
+    await checkAuth();
+    window.dispatchEvent(new Event("authChange"));
+  }, [checkAuth]);
+
+  useEffect(() => {
+    handleGoogleAuth();
+  }, [handleGoogleAuth]);
+
+  // Register
+  const register = async (name, email, password) => {
+    try {
+      const response = await authClient.post(GET_DATA_AUTH.REGISTER, { name, email, password });
+
+      if (response.data.status) {
+        showToast("Registration successful! Please login.", "success");
+        return response.data;
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Register error:", error.response?.data || error);
+      showToast(error.response?.data?.message || "Registration failed!", "error");
+      throw new Error(error.response?.data?.message || "Registration failed!");
     }
   };
 
@@ -79,7 +106,6 @@ const AuthProvider = ({ children }) => {
       const response = await apiClient.put("/profile", profileData);
       showToast("Profile updated successfully!", "success");
 
-      // Update user data di state dan cookies
       setUser(response.data.data);
       CookieStorage.set(CookieKeys.User, response.data.data, { expires: getExpirationDate(12) });
 
@@ -97,14 +123,15 @@ const AuthProvider = ({ children }) => {
     setToken(null);
     CookieStorage.remove(CookieKeys.AuthToken);
     CookieStorage.remove(CookieKeys.User);
-    apiClient.defaults.headers.common["Authorization"] = ""; // ✅ Hapus token dari interceptor
+    apiClient.defaults.headers.common["Authorization"] = "";
     hasFetchedProfile.current = false;
+
     window.dispatchEvent(new Event("authChange"));
     showToast("Logged out successfully", "info");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, fetchProfile, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, loading, fetchProfile, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

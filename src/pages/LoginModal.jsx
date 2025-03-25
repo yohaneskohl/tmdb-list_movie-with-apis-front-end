@@ -20,6 +20,12 @@ const LoginModal = ({ setShowLogin, setShowRegister }) => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.REACT_APP_BASE_BACKEND_URL}/auth/google/callback`;
+    window.dispatchEvent(new Event("authChange")); // Tambahkan event agar Navbar diperbarui
+  };
+  
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-96 relative">
@@ -60,6 +66,14 @@ const LoginModal = ({ setShowLogin, setShowRegister }) => {
             Login
           </button>
         </form>
+
+        <button
+          type="button"
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg mt-4"
+          onClick={handleGoogleLogin}
+        >
+          Login dengan Google
+        </button>
 
         <p className="text-center mt-4 text-gray-400">
           Belum punya akun?{" "}

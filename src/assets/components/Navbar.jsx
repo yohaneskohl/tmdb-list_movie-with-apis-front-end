@@ -8,12 +8,12 @@ const Navbar = ({ setShowLogin, setShowRegister }) => {
   const [authUser, setAuthUser] = useState(user);
 
   useEffect(() => {
-    setAuthUser(user); // Update state lokal ketika user berubah
-  }, [user]); // Dependensi user dari context
+    setAuthUser(user); 
+  }, [user]); 
 
   useEffect(() => {
     const handleAuthChange = () => {
-      setAuthUser(user); // Update navbar ketika event "authChange" terjadi
+      setAuthUser(user); 
     };
 
     window.addEventListener("authChange", handleAuthChange);

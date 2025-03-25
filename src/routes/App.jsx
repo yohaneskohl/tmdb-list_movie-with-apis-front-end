@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "../assets/components/Navbar";
 import EntertainmentList from "../pages/EntertainmentList";
 import Footer from "../assets/components/Footer";
@@ -10,47 +10,54 @@ import SearchResults from "../pages/SearchResult";
 import MovieDetail from "../pages/MovieDetail";
 import LoginModal from "../pages/LoginModal";
 import RegisterModal from "../pages/RegisterModal";
+import AuthProvider, { AuthContext } from "../assets/components/context/AuthProvider";
+import { useContext } from "react";
+import GoogleCallback from "../pages/GoogleCallback";
+
+// Private Route Component
+const PrivateRoute = ({ element }) => {
+  const { user } = useContext(AuthContext);
+  return user ? element : <Navigate to="/" replace />;
+};
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
   return (
-    <Router>
-      <div className="bg-gray-900 min-h-screen text-white">
-        {/* Navbar yang bisa membuka modal */}
-        <Navbar setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
+    <AuthProvider>
+      <Router>
+        <div className="bg-gray-900 min-h-screen text-white">
+          {/* Navbar yang bisa membuka modal */}
+          <Navbar setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
 
-        <main className="px-2 py-1 min-h-screen flex flex-col">
-          <Routes>
-            <Route path="/" element={<EntertainmentList />} />
-            <Route path="/movies" element={<Movies />} />
-            <Route path="/tv-shows" element={<TVShows />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/movie/:id" element={<MovieDetail />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </main>
+          <main className="px-2 py-1 min-h-screen flex flex-col">
+            <Routes>
+              <Route path="/" element={<EntertainmentList />} />
+              <Route path="/movies" element={<Movies />} />
+              <Route path="/tv-shows" element={<TVShows />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/movie/:id" element={<MovieDetail />} />
+              <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+              <Route path="/google-callback" element={<GoogleCallback />} /> {/* Tambahkan ini */}
 
-        <Footer />
+            </Routes>
+          </main>
 
-        {/* Pop-up Login Modal */}
-        {showLogin && (
-          <LoginModal
-            setShowLogin={setShowLogin}
-            setShowRegister={setShowRegister}
-          />
-        )}
+          <Footer />
 
-        {/* Pop-up Register Modal */}
-        {showRegister && (
-          <RegisterModal
-            setShowLogin={setShowLogin}
-            setShowRegister={setShowRegister}
-          />
-        )}
-      </div>
-    </Router>
+          {/* Pop-up Login Modal */}
+          {showLogin && (
+            <LoginModal setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
+          )}
+
+          {/* Pop-up Register Modal */}
+          {showRegister && (
+            <RegisterModal setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
+          )}
+        </div>
+      </Router>
+    </AuthProvider>
   );
 };
 
