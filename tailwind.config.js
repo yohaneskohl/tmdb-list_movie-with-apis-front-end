@@ -3,7 +3,11 @@
 export default {
     content: ["./src/**/*.{js,jsx,ts,tsx}"],
     theme: {
-      extend: {},
+      extend: {
+        fontFamily: {
+          spotify: ["Poppins", "sans-serif"], // Alternatif untuk Spotify Circular
+        },
+      },
     },
     plugins: [],
   };

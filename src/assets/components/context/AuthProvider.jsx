@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 import { apiClient, authClient } from "../../../utils/apiClient";
 import { GET_DATA_AUTH } from "../../../services/auth/get-data-auth";
 import { showToast } from "../../css/toastify";
@@ -11,14 +11,12 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => CookieStorage.get(CookieKeys.User) || null);
   const [token, setToken] = useState(() => CookieStorage.get(CookieKeys.AuthToken) || null);
   const [loading, setLoading] = useState(true);
-  const hasFetchedProfile = useRef(false);
 
-  // Fetch Profile
+  // Fetch user profile
   const fetchProfile = useCallback(async () => {
-    if (!token || hasFetchedProfile.current) return;
+    if (!token) return;
 
     try {
-      hasFetchedProfile.current = true;
       const response = await apiClient.get(GET_DATA_AUTH.PROFILE);
       setUser(response.data.data);
       CookieStorage.set(CookieKeys.User, response.data.data, { expires: getExpirationDate(12) });
@@ -28,7 +26,7 @@ const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Cek autentikasi saat aplikasi pertama kali dibuka
+  // Check authentication when app starts
   const checkAuth = useCallback(async () => {
     const savedToken = CookieStorage.get(CookieKeys.AuthToken);
     if (!savedToken) {
@@ -46,12 +44,12 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     checkAuth();
 
-    // Tambahkan event listener untuk perubahan autentikasi
+    // Add event listener for authentication change
     window.addEventListener("authChange", checkAuth);
     return () => window.removeEventListener("authChange", checkAuth);
   }, [checkAuth]);
 
-  // Login
+  // Login function
   const login = async (email, password) => {
     try {
       const response = await authClient.post(GET_DATA_AUTH.LOGIN, { email, password });
@@ -60,11 +58,10 @@ const AuthProvider = ({ children }) => {
       setToken(token);
       CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) });
 
-      hasFetchedProfile.current = false;
       await fetchProfile();
       showToast("Login successful!", "success");
 
-      // Memicu event agar navbar terupdate
+      // Trigger event to update UI
       window.dispatchEvent(new Event("authChange"));
     } catch (error) {
       console.error("Login error:", error.response?.data || error);
@@ -72,17 +69,18 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login dengan Google (dipanggil setelah redirect)
+  // Handle Google OAuth login (after redirect)
   const handleGoogleAuth = useCallback(async () => {
+    if (!token) return;
     await checkAuth();
     window.dispatchEvent(new Event("authChange"));
-  }, [checkAuth]);
+  }, [token, checkAuth]);
 
   useEffect(() => {
     handleGoogleAuth();
   }, [handleGoogleAuth]);
 
-  // Register
+  // Register function
   const register = async (name, email, password) => {
     try {
       const response = await authClient.post(GET_DATA_AUTH.REGISTER, { name, email, password });
@@ -100,10 +98,10 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Update Profile
+  // Update user profile
   const updateProfile = async (profileData) => {
     try {
-      const response = await apiClient.put("/profile", profileData);
+      const response = await apiClient.put(GET_DATA_AUTH.PROFILE, profileData);
       showToast("Profile updated successfully!", "success");
 
       setUser(response.data.data);
@@ -117,14 +115,13 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout
+  // Logout function
   const logout = () => {
     setUser(null);
     setToken(null);
     CookieStorage.remove(CookieKeys.AuthToken);
     CookieStorage.remove(CookieKeys.User);
     apiClient.defaults.headers.common["Authorization"] = "";
-    hasFetchedProfile.current = false;
 
     window.dispatchEvent(new Event("authChange"));
     showToast("Logged out successfully", "info");

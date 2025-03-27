@@ -11,25 +11,23 @@ import MovieDetail from "../pages/MovieDetail";
 import LoginModal from "../pages/LoginModal";
 import RegisterModal from "../pages/RegisterModal";
 import AuthProvider, { AuthContext } from "../assets/components/context/AuthProvider";
-import { useContext } from "react";
 import GoogleCallback from "../pages/GoogleCallback";
 
 // Private Route Component
 const PrivateRoute = ({ element }) => {
-  const { user } = useContext(AuthContext);
+  const { user } = React.useContext(AuthContext);
   return user ? element : <Navigate to="/" replace />;
 };
 
 const App = () => {
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [activeModal, setActiveModal] = useState(null); // null, 'login', 'register'
 
   return (
     <AuthProvider>
       <Router>
         <div className="bg-gray-900 min-h-screen text-white">
-          {/* Navbar yang bisa membuka modal */}
-          <Navbar setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
+          {/* Navbar */}
+          <Navbar setActiveModal={setActiveModal} />
 
           <main className="px-2 py-1 min-h-screen flex flex-col">
             <Routes>
@@ -39,22 +37,15 @@ const App = () => {
               <Route path="/search" element={<SearchResults />} />
               <Route path="/movie/:id" element={<MovieDetail />} />
               <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
-              <Route path="/google-callback" element={<GoogleCallback />} /> {/* Tambahkan ini */}
-
+              <Route path="/google-callback" element={<GoogleCallback />} />
             </Routes>
           </main>
 
           <Footer />
 
-          {/* Pop-up Login Modal */}
-          {showLogin && (
-            <LoginModal setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
-          )}
-
-          {/* Pop-up Register Modal */}
-          {showRegister && (
-            <RegisterModal setShowLogin={setShowLogin} setShowRegister={setShowRegister} />
-          )}
+          {/* Modal Login & Register */}
+          {activeModal === "login" && <LoginModal setActiveModal={setActiveModal} />}
+          {activeModal === "register" && <RegisterModal setActiveModal={setActiveModal} />}
         </div>
       </Router>
     </AuthProvider>
