@@ -4,6 +4,7 @@ import { GET_DATA_AUTH } from "../../../services/auth/get-data-auth";
 import { showToast } from "../../css/toastify";
 import { CookieStorage, CookieKeys } from "../../../utils/Cookies";
 import { getExpirationDate } from "../../../utils/expirationUtils";
+import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
 
@@ -49,7 +50,7 @@ const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("authChange", checkAuth);
   }, [checkAuth]);
 
-  // Login function
+  // Login function (Email & Password)
   const login = async (email, password) => {
     try {
       const response = await authClient.post(GET_DATA_AUTH.LOGIN, { email, password });
@@ -69,16 +70,30 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Handle Google OAuth login (after redirect)
-  const handleGoogleAuth = useCallback(async () => {
-    if (!token) return;
-    await checkAuth();
-    window.dispatchEvent(new Event("authChange"));
-  }, [token, checkAuth]);
+  // Handle Google OAuth login
+  const handleGoogleLogin = async (googleToken) => {
+    try {
+      // Decode token untuk debugging (opsional)
+      const decodedToken = jwtDecode(googleToken);
+      console.log("Google Token Data:", decodedToken);
 
-  useEffect(() => {
-    handleGoogleAuth();
-  }, [handleGoogleAuth]);
+      // Kirim token ke backend untuk validasi
+      const response = await authClient.post(GET_DATA_AUTH.GOOGLE_AUTH, { token: googleToken });
+      const { token } = response.data.data;
+
+      // Simpan token baru
+      setToken(token);
+      CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) });
+
+      await fetchProfile();
+      showToast("Login dengan Google berhasil!", "success");
+
+      window.dispatchEvent(new Event("authChange"));
+    } catch (error) {
+      console.error("Google Login Error:", error.response?.data || error);
+      showToast(error.response?.data?.message || "Login dengan Google gagal", "error");
+    }
+  };
 
   // Register function
   const register = async (name, email, password) => {
@@ -128,7 +143,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading, fetchProfile, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, login, handleGoogleLogin, register, logout, loading, fetchProfile, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

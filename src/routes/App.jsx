@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "../assets/components/Navbar";
 import EntertainmentList from "../pages/EntertainmentList";
 import Footer from "../assets/components/Footer";
@@ -10,14 +10,9 @@ import SearchResults from "../pages/SearchResult";
 import MovieDetail from "../pages/MovieDetail";
 import LoginModal from "../pages/LoginModal";
 import RegisterModal from "../pages/RegisterModal";
-import AuthProvider, { AuthContext } from "../assets/components/context/AuthProvider";
+import AuthProvider from "../assets/components/context/AuthProvider";
 import GoogleCallback from "../pages/GoogleCallback";
-
-// Private Route Component
-const PrivateRoute = ({ element }) => {
-  const { user } = React.useContext(AuthContext);
-  return user ? element : <Navigate to="/" replace />;
-};
+import PrivateRoute from "../assets/components/private/PrivateRoute"; 
 
 const App = () => {
   const [activeModal, setActiveModal] = useState(null); // null, 'login', 'register'
@@ -36,8 +31,12 @@ const App = () => {
               <Route path="/tv-shows" element={<TVShows />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/movie/:id" element={<MovieDetail />} />
-              <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
               <Route path="/google-callback" element={<GoogleCallback />} />
+
+              {/* Private Route */}
+              <Route element={<PrivateRoute />}>
+                <Route path="/profile" element={<Profile />} />
+              </Route>
             </Routes>
           </main>
 

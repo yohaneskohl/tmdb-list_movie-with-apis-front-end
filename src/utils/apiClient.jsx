@@ -4,7 +4,7 @@ import { CookieStorage, CookieKeys } from "./Cookies";
 const BASE_BACKEND_URL = process.env.REACT_APP_BASE_BACKEND_URL;
 const BASE_AUTH_URL = process.env.REACT_APP_BASE_AUTH;
 
-// Instance untuk API utama (data user, update profil, dsb.)
+// Instance untuk API utama (data user, update profil, image dsb.)
 export const apiClient = axios.create({
   baseURL: BASE_BACKEND_URL,
   timeout: 30000,

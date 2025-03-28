@@ -7,10 +7,12 @@ const LoginModal = ({ setActiveModal }) => {
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
 
+  // Handle perubahan input
   const handleInput = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle login biasa (email & password)
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -22,14 +24,15 @@ const LoginModal = ({ setActiveModal }) => {
     }
   };
 
+  // Handle login dengan Google OAuth
   const handleGoogleLogin = () => {
     window.location.href = `${process.env.REACT_APP_BASE_BACKEND_URL}/auth/google/callback`;
-    window.dispatchEvent(new Event("authChange"));
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-96 relative border border-gray-700">
+        
         {/* Tombol Close */}
         <button
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 transition duration-300"
