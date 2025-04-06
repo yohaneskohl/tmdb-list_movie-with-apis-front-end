@@ -1,10 +1,10 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
+import { useGoogleLogin } from "@react-oauth/google";
 import { apiClient, authClient } from "../../../utils/apiClient";
 import { GET_DATA_AUTH } from "../../../services/auth/get-data-auth";
 import { showToast } from "../../css/toastify";
 import { CookieStorage, CookieKeys } from "../../../utils/Cookies";
 import { getExpirationDate } from "../../../utils/expirationUtils";
-import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
 
@@ -38,6 +38,8 @@ const AuthProvider = ({ children }) => {
     }
 
     setToken(savedToken);
+    apiClient.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
+    
     await fetchProfile();
     setLoading(false);
   }, [fetchProfile]);
@@ -57,6 +59,7 @@ const AuthProvider = ({ children }) => {
       const { token } = response.data.data;
 
       setToken(token);
+      apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) });
 
       await fetchProfile();
@@ -70,30 +73,33 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Handle Google OAuth login
-  const handleGoogleLogin = async (googleToken) => {
-    try {
-      // Decode token untuk debugging (opsional)
-      const decodedToken = jwtDecode(googleToken);
-      console.log("Google Token Data:", decodedToken);
+  // ✅ Google OAuth Login Function
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        const googleToken = response.access_token;
+        
+        // Kirim token ke backend untuk verifikasi
+        const res = await authClient.post(GET_DATA_AUTH.GOOGLE_AUTH, { token: googleToken });
+        const { token } = res.data.data;
 
-      // Kirim token ke backend untuk validasi
-      const response = await authClient.post(GET_DATA_AUTH.GOOGLE_AUTH, { token: googleToken });
-      const { token } = response.data.data;
+        setToken(token);
+        apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) });
 
-      // Simpan token baru
-      setToken(token);
-      CookieStorage.set(CookieKeys.AuthToken, token, { expires: getExpirationDate(12) });
+        await fetchProfile();
+        showToast("Login dengan Google berhasil!", "success");
 
-      await fetchProfile();
-      showToast("Login dengan Google berhasil!", "success");
-
-      window.dispatchEvent(new Event("authChange"));
-    } catch (error) {
-      console.error("Google Login Error:", error.response?.data || error);
-      showToast(error.response?.data?.message || "Login dengan Google gagal", "error");
+        window.dispatchEvent(new Event("authChange"));
+      } catch (error) {
+        console.error("Google Login Error:", error.response?.data || error);
+        showToast(error.response?.data?.message || "Login dengan Google gagal", "error");
+      }
+    },
+    onError: () => {
+      showToast("Login dengan Google gagal", "error");
     }
-  };
+  });
 
   // Register function
   const register = async (name, email, password) => {

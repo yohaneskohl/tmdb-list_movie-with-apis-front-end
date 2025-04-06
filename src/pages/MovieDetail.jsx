@@ -1,28 +1,15 @@
+// src/pages/MovieDetail.jsx
+
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-
-const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
-const BASE_MOVIE_URL = process.env.REACT_APP_BASE_MOVIE_URL;
-
-// Fetch movie details
-const fetchMovieDetails = async ({ queryKey }) => {
-  const [, id] = queryKey;
-  const { data } = await axios.get(`${BASE_MOVIE_URL}/${id}?language=en-US`, {
-    headers: {
-      accept: "application/json",
-      Authorization: `Bearer ${API_KEY}`,
-    },
-  });
-  return data;
-};
+import { fetchMovieDetails } from "../services/tmdb/tmdbService"; // sesuaikan path-nya
 
 const MovieDetail = () => {
   const { id } = useParams();
   const { data: movie, isLoading, error } = useQuery({
     queryKey: ["movieDetail", id],
-    queryFn: fetchMovieDetails,
+    queryFn: () => fetchMovieDetails(id),
   });
 
   if (isLoading) return <p className="text-center text-gray-400 pt-20">Loading...</p>;
