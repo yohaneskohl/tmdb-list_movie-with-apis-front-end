@@ -1,15 +1,17 @@
+// src/pages/TVShows.jsx
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOnTheAirTVShows } from "../services/tmdb/tmdbService";
-import TVShowCard from "../assets/components/TVShowCard"; // Sesuaikan dengan komponen TV Show
+import TVShowCard from "../assets/components/TVShowCard";
 import Pagination from "../assets/components/Pagination";
+import { API_ENDPOINT } from "../utils/tmdbClient";
 
 const TVShows = () => {
   const [page, setPage] = useState(1);
 
   const { data: tvShowData, isLoading } = useQuery({
-    queryKey: ["onTheAirTVShows", page],
-    queryFn: () => fetchOnTheAirTVShows(page),
+    queryKey: [API_ENDPOINT.ON_THE_AIR, { page }],
+    queryFn: fetchOnTheAirTVShows,
     keepPreviousData: true,
   });
 
@@ -25,10 +27,16 @@ const TVShows = () => {
       </div>
 
       <div className="mt-8">
-        <Pagination page={page} totalPages={tvShowData?.totalPages || 1} onPageChange={setPage} />
+        <Pagination
+          page={page}
+          totalPages={tvShowData?.totalPages || 1}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );
 };
 
 export default TVShows;
+
+

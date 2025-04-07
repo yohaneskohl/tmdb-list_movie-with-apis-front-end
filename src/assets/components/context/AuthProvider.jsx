@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { apiClient, authClient } from "../../../utils/apiClient";
-import { GET_DATA_AUTH } from "../../../services/auth/get-data-auth";
+import { authKeys } from "../../../services/auth/auth.keys";
+import { authParams } from "../../../services/auth/auth.params";
 import { showToast } from "../../css/toastify";
 import { CookieStorage, CookieKeys } from "../../../utils/Cookies";
 import { getExpirationDate } from "../../../utils/expirationUtils";
@@ -13,21 +14,25 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => CookieStorage.get(CookieKeys.AuthToken) || null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user profile
+  // ✅ Fetch user profile dengan _key dan _params
   const fetchProfile = useCallback(async () => {
     if (!token) return;
 
+    const _key = authKeys.profile;
+    const _params = authParams.profile();
+
     try {
-      const response = await apiClient.get(GET_DATA_AUTH.PROFILE);
-      setUser(response.data.data);
-      CookieStorage.set(CookieKeys.User, response.data.data, { expires: getExpirationDate(12) });
+      const { data } = await apiClient.get(_key, { params: _params });
+
+      setUser(data.data);
+      CookieStorage.set(CookieKeys.User, data.data, { expires: getExpirationDate(12) });
     } catch (error) {
       console.error("Error fetching profile:", error.response?.data || error);
       showToast("Failed to fetch profile", "error");
     }
   }, [token]);
 
-  // Check authentication when app starts
+  // ✅ Check token on app load
   const checkAuth = useCallback(async () => {
     const savedToken = CookieStorage.get(CookieKeys.AuthToken);
     if (!savedToken) {
@@ -39,7 +44,7 @@ const AuthProvider = ({ children }) => {
 
     setToken(savedToken);
     apiClient.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
-    
+
     await fetchProfile();
     setLoading(false);
   }, [fetchProfile]);
@@ -47,15 +52,15 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     checkAuth();
 
-    // Add event listener for authentication change
     window.addEventListener("authChange", checkAuth);
     return () => window.removeEventListener("authChange", checkAuth);
   }, [checkAuth]);
 
-  // Login function (Email & Password)
+  // ✅ Login dengan email & password
   const login = async (email, password) => {
     try {
-      const response = await authClient.post(GET_DATA_AUTH.LOGIN, { email, password });
+      const _key = authKeys.login;
+      const response = await authClient.post(_key, { email, password });
       const { token } = response.data.data;
 
       setToken(token);
@@ -64,8 +69,6 @@ const AuthProvider = ({ children }) => {
 
       await fetchProfile();
       showToast("Login successful!", "success");
-
-      // Trigger event to update UI
       window.dispatchEvent(new Event("authChange"));
     } catch (error) {
       console.error("Login error:", error.response?.data || error);
@@ -73,14 +76,14 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Google OAuth Login Function
+  // ✅ Login Google
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (response) => {
       try {
         const googleToken = response.access_token;
-        
-        // Kirim token ke backend untuk verifikasi
-        const res = await authClient.post(GET_DATA_AUTH.GOOGLE_AUTH, { token: googleToken });
+        const _key = authKeys.googleAuth;
+
+        const res = await authClient.post(_key, { token: googleToken });
         const { token } = res.data.data;
 
         setToken(token);
@@ -89,7 +92,6 @@ const AuthProvider = ({ children }) => {
 
         await fetchProfile();
         showToast("Login dengan Google berhasil!", "success");
-
         window.dispatchEvent(new Event("authChange"));
       } catch (error) {
         console.error("Google Login Error:", error.response?.data || error);
@@ -98,13 +100,14 @@ const AuthProvider = ({ children }) => {
     },
     onError: () => {
       showToast("Login dengan Google gagal", "error");
-    }
+    },
   });
 
-  // Register function
+  // ✅ Register
   const register = async (name, email, password) => {
     try {
-      const response = await authClient.post(GET_DATA_AUTH.REGISTER, { name, email, password });
+      const _key = authKeys.register;
+      const response = await authClient.post(_key, { name, email, password });
 
       if (response.data.status) {
         showToast("Registration successful! Please login.", "success");
@@ -119,15 +122,15 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Update user profile
+  // ✅ Update Profile
   const updateProfile = async (profileData) => {
     try {
-      const response = await apiClient.put(GET_DATA_AUTH.PROFILE, profileData);
-      showToast("Profile updated successfully!", "success");
+      const _key = authKeys.profile;
+      const response = await apiClient.put(_key, profileData);
 
       setUser(response.data.data);
       CookieStorage.set(CookieKeys.User, response.data.data, { expires: getExpirationDate(12) });
-
+      showToast("Profile updated successfully!", "success");
       return response.data.data;
     } catch (error) {
       console.error("Update profile error:", error.response?.data || error);
@@ -136,7 +139,7 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
+  // ✅ Logout
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -149,7 +152,19 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, handleGoogleLogin, register, logout, loading, fetchProfile, updateProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        login,
+        handleGoogleLogin,
+        register,
+        logout,
+        loading,
+        fetchProfile,
+        updateProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

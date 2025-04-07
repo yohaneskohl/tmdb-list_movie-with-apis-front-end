@@ -1,15 +1,17 @@
+// src/pages/Movies.jsx
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNowPlayingMovies } from "../services/tmdb/tmdbService";
 import MovieCard from "../assets/components/MovieCard";
 import Pagination from "../assets/components/Pagination";
+import { API_ENDPOINT } from "../utils/tmdbClient";
 
 const Movies = () => {
   const [page, setPage] = useState(1);
 
   const { data: movieData, isLoading } = useQuery({
-    queryKey: ["nowPlayingMovies", page],
-    queryFn: () => fetchNowPlayingMovies(page),
+    queryKey: [API_ENDPOINT.NOW_PLAYING, { page }],
+    queryFn: fetchNowPlayingMovies,
     keepPreviousData: true,
   });
 

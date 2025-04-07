@@ -5,7 +5,7 @@ import EntertainmentList from "../pages/EntertainmentList";
 import Footer from "../assets/components/Footer";
 import Profile from "../assets/components/Profile";
 import Movies from "../pages/Movies";
-import TVShows from "../pages/TVSHows";
+import TVShows from "../pages/TVShows";
 import SearchResults from "../pages/SearchResult";
 import MovieDetail from "../pages/MovieDetail";
 import LoginModal from "../pages/LoginModal";
@@ -13,6 +13,7 @@ import RegisterModal from "../pages/RegisterModal";
 import AuthProvider from "../assets/components/context/AuthProvider";
 import GoogleCallback from "../pages/GoogleCallback";
 import PrivateRoute from "../assets/components/private/PrivateRoute"; 
+
 
 const App = () => {
   const [activeModal, setActiveModal] = useState(null); // null, 'login', 'register'
