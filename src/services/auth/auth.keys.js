@@ -3,6 +3,6 @@ export const authKeys = {
     profile: "/profile",
     login: "/login",
     register: "/register",
-    googleAuth: "/auth/google/callback",
+    googleAuth: "/google/callback",
   };
   

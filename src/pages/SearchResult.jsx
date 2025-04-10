@@ -1,12 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { searchMoviesAndTVShows } from "../services/tmdb/tmdbService";
+import { useDispatch, useSelector } from "react-redux";
+import { searchContent } from "../redux/action/searchActions";
 import MovieCard from "../assets/components/MovieCard";
 import TVShowCard from "../assets/components/TVShowCard";
-import { API_ENDPOINT } from "../utils/tmdbClient";
 
-// Helper untuk ambil query param
+// Helper ambil query dari URL
 const useQueryParams = () => {
   return new URLSearchParams(useLocation().search);
 };
@@ -15,13 +14,17 @@ const SearchResults = () => {
   const queryParams = useQueryParams();
   const searchQuery = queryParams.get("q");
 
+  const dispatch = useDispatch();
 
-  const { data: searchResults, isLoading, isError } = useQuery({
-    queryKey: [[API_ENDPOINT.SEARCH_MOVIE, API_ENDPOINT.SEARCH_TV], { query: searchQuery }],
-    queryFn: searchMoviesAndTVShows,
-    enabled: !!searchQuery,
-  });
-  
+  const { searchResults } = useSelector((state) => state.search);
+  const { movies, tvShows } = searchResults;
+
+  useEffect(() => {
+    dispatch(searchContent({ query: searchQuery }));
+  }, [dispatch, searchQuery]);
+
+  const hasMovies = movies?.length > 0;
+  const hasTVShows = tvShows?.length > 0;
 
   if (!searchQuery) {
     return (
@@ -31,23 +34,6 @@ const SearchResults = () => {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="text-center text-gray-400 pt-20">Loading...</div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="text-center text-red-500 pt-20">
-        Something went wrong while fetching data.
-      </div>
-    );
-  }
-
-  const hasMovies = searchResults?.movies?.length > 0;
-  const hasTVShows = searchResults?.tvShows?.length > 0;
-
   return (
     <div className="bg-black min-h-screen text-white px-4 pt-20 pb-32">
       <h2 className="text-3xl font-bold mb-4">
@@ -55,25 +41,25 @@ const SearchResults = () => {
       </h2>
 
       {hasMovies && (
-        <div>
+        <section>
           <h3 className="text-2xl mb-2">🎬 Movies</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {searchResults.movies.map((movie) => (
+            {movies.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {hasTVShows && (
-        <div className="mt-8">
+        <section className="mt-8">
           <h3 className="text-2xl mb-2">📺 TV Shows</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {searchResults.tvShows.map((show) => (
+            {tvShows.map((show) => (
               <TVShowCard key={show.id} show={show} />
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {!hasMovies && !hasTVShows && (

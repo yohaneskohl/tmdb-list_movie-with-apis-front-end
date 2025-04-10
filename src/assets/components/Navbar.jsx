@@ -1,28 +1,34 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "./context/AuthProvider";
-import { FaSearch } from "react-icons/fa"; 
+import { useDispatch, useSelector } from "react-redux";
+import { logoutAction } from "../../redux/action/authActions";
+import { FaSearch } from "react-icons/fa";
 
 const Navbar = ({ setActiveModal }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useContext(AuthContext);
-  const [authUser, setAuthUser] = useState(user);
-  const [activeButton, setActiveButton] = useState(null);
+  const dispatch = useDispatch();
+
+  const { user } = useSelector((state) => state.auth);
+  const [activeButton, setActiveButton] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Reset active button saat route berubah
   useEffect(() => {
-    setAuthUser(user);
-  }, [user]);
-
-  useEffect(() => {
-    setActiveButton(null);
+    setActiveButton(""); // Reset active button saat route berubah
   }, [location.pathname]);
 
+  // Tutup modal otomatis jika user berhasil login
+  useEffect(() => {
+    if (user) {
+      setActiveModal(null); // Menutup modal login/register jika user sudah login
+      setActiveButton(""); // Reset active button setelah login
+    }
+  }, [user, setActiveModal]); // Dependency hanya pada user dan setActiveModal
+
   const handleLogout = () => {
-    logout();
-    setActiveButton(null);
-    navigate("/");
+    dispatch(logoutAction());
+    navigate("/"); // Redirect ke home setelah logout
   };
 
   const handleSearch = (e) => {
@@ -40,11 +46,11 @@ const Navbar = ({ setActiveModal }) => {
           <span className="font-extrabold">Movie</span>list
         </Link>
 
-        {/* Modern Search Bar */}
+        {/* Search Bar */}
         <div className="w-1/3">
           <form
             onSubmit={handleSearch}
-            className="flex items-center bg-gray-900 border border-gray-700 rounded-full px-4 py-2 transition duration-300 focus-within:ring-2 focus-within:ring-red-500"
+            className="flex items-center bg-gray-900 border border-gray-700 rounded-full px-4 py-2 focus-within:ring-2 focus-within:ring-red-500"
           >
             <input
               type="text"
@@ -55,25 +61,25 @@ const Navbar = ({ setActiveModal }) => {
             />
             <button
               type="submit"
-              className="ml-2 p-2 bg-red-600 hover:bg-red-700 rounded-full transition duration-300"
+              className="ml-2 p-2 bg-red-600 hover:bg-red-700 rounded-full"
             >
               <FaSearch className="text-white" />
             </button>
           </form>
         </div>
 
-        {/* Navigation Links */}
+        {/* Navigation */}
         <div className="flex space-x-4 items-center">
-          <Link to="/" className="text-white hover:text-red-500 transition duration-300">Home</Link>
-          <Link to="/movies" className="text-white hover:text-red-500 transition duration-300">Movies</Link>
-          <Link to="/tv-shows" className="text-white hover:text-red-500 transition duration-300">TV Shows</Link>
+          <Link to="/" className="text-white hover:text-red-500">Home</Link>
+          <Link to="/movies" className="text-white hover:text-red-500">Movies</Link>
+          <Link to="/tv-shows" className="text-white hover:text-red-500">TV Shows</Link>
 
-          {authUser ? (
+          {user ? (
             <div className="flex space-x-3 items-center">
-              <Link to="/profile" className="text-white hover:text-red-500 transition duration-300">Profile</Link>
+              <Link to="/profile" className="text-white hover:text-red-500">Profile</Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-full text-white transition duration-300"
+                className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-full text-white"
               >
                 Logout
               </button>
@@ -85,10 +91,10 @@ const Navbar = ({ setActiveModal }) => {
                   setActiveModal("login");
                   setActiveButton("login");
                 }}
-                className={`px-5 py-2 rounded-full transition duration-300 border ${
+                className={`px-5 py-2 rounded-full border ${
                   activeButton === "login"
                     ? "bg-red-600 border-red-600 text-white"
-                    : "border-red-500 text-white hover:bg-red-600 hover:border-red-600"
+                    : "border-red-500 text-white hover:bg-red-600"
                 }`}
               >
                 Login
@@ -98,10 +104,10 @@ const Navbar = ({ setActiveModal }) => {
                   setActiveModal("register");
                   setActiveButton("register");
                 }}
-                className={`px-5 py-2 rounded-full transition duration-300 ${
+                className={`px-5 py-2 rounded-full ${
                   activeButton === "register"
                     ? "bg-red-600 text-white"
-                    : "bg-transparent border border-red-500 text-white hover:bg-red-600 hover:border-red-600"
+                    : "border border-red-500 text-white hover:bg-red-600"
                 }`}
               >
                 Register
