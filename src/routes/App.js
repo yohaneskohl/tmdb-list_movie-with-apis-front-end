@@ -20,7 +20,7 @@ import RegisterModal from "../pages/RegisterModal";
 import GoogleCallback from "../pages/GoogleCallback";
 import PrivateRoute from "../assets/components/private/PrivateRoute";
 
-// ❗️ PENTING: Cuma untuk update ulang setelah login/logout
+// 
 const syncAuthFromCookies = (dispatch) => {
   const token = CookieStorage.get(CookieKeys.AuthToken);
   const user = CookieStorage.get(CookieKeys.User);
