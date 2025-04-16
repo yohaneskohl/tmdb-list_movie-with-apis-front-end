@@ -1,31 +1,37 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchNowPlayingMovies } from "../utils/http";
+// pages/Movies.jsx
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getNowPlayingMovies } from "../redux/action/movieActions";
 import MovieCard from "../assets/components/MovieCard";
 import Pagination from "../assets/components/Pagination";
 
 const Movies = () => {
+  const dispatch = useDispatch();
   const [page, setPage] = useState(1);
 
-  const { data: movieData, isLoading } = useQuery({
-    queryKey: ["nowPlayingMovies", page],
-    queryFn: () => fetchNowPlayingMovies(page),
-    keepPreviousData: true,
-  });
+  const { nowPlaying, isLoading, totalPages } = useSelector(
+    (state) => state.movie
+  );
 
-  if (isLoading) return <p className="text-center text-gray-400">Loading...</p>;
+  useEffect(() => {
+    dispatch(getNowPlayingMovies(page));
+  }, [dispatch, page]);
+
+  if (isLoading) {
+    return <p className="text-center text-gray-400">Loading...</p>;
+  }
 
   return (
-    <div className="bg-black min-h-screen text-white px-4 pt-20">
+    <div className="bg-black min-h-screen text-white px-4 pt-20 pb-10">
       <h2 className="text-3xl font-bold mb-6">🔥 Now Playing Movies</h2>
       <div className="grid grid-cols-5 gap-6">
-        {movieData?.movies?.map((movie) => (
+        {nowPlaying?.map((movie) => (
           <MovieCard key={movie.id} movie={movie} />
         ))}
       </div>
 
       <div className="mt-8">
-        <Pagination page={page} totalPages={movieData?.totalPages || 1} onPageChange={setPage} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

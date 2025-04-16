@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchNowPlayingMovies, fetchOnTheAirTVShows } from "../utils/http";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getNowPlayingMovies } from "../redux/action/movieActions";
+import { getOnTheAirTVShows } from "../redux/action/tvShowActions";
 import MovieCard from "../assets/components/MovieCard";
 import MovieSlider from "../assets/components/MovieSlider";
 import Pagination from "../assets/components/Pagination";
@@ -8,20 +9,24 @@ import TVShowSection from "../assets/components/TVShowSection";
 
 const EntertainmentList = () => {
   const [page, setPage] = useState(1);
+  const dispatch = useDispatch();
 
-  // Fetch Movies (dapat diakses tanpa login)
-  const { data: movieData, isLoading: isLoadingMovies } = useQuery({
-    queryKey: ["nowPlayingMovies", page],
-    queryFn: () => fetchNowPlayingMovies(page),
-    keepPreviousData: true, // Agar data sebelumnya tetap ada saat fetch baru
-  });
+  const {
+    nowPlaying,
+    totalPages: movieTotalPages,
+    isLoading: isLoadingMovies,
+  } = useSelector((state) => state.movie);
 
-  // Fetch TV Shows (dapat diakses tanpa login)
-  const { data: tvShowData, isLoading: isLoadingTVShows } = useQuery({
-    queryKey: ["onTheAirTVShows", page],
-    queryFn: () => fetchOnTheAirTVShows(page),
-    keepPreviousData: true, 
-  });
+  const {
+    tvOnTheAir, // ✅ ambil state ini, bukan `setTVOnTheAir`
+    tvTotalPages,
+    isLoadingTVOnTheAir: isLoadingTVShows,
+  } = useSelector((state) => state.tvshow); // pastikan `tvshow` sesuai dengan key di `combineReducers`
+
+  useEffect(() => {
+    dispatch(getNowPlayingMovies(page));
+    dispatch(getOnTheAirTVShows(page));
+  }, [dispatch, page]);
 
   if (isLoadingMovies || isLoadingTVShows) {
     return <p className="text-center text-gray-400">Loading...</p>;
@@ -29,25 +34,21 @@ const EntertainmentList = () => {
 
   return (
     <div className="bg-black min-h-screen text-white">
-      {/* Movie Slider */}
-      <MovieSlider movies={movieData?.movies?.slice(0, 10) || []} />
+      <MovieSlider movies={nowPlaying.slice(0, 10)} />
 
-      {/* Now Playing Movies Section */}
       <div className="px-8 py-12">
         <h2 className="text-3xl font-bold mb-6">🔥 Now Playing Movies</h2>
         <div className="grid grid-cols-5 gap-6">
-          {movieData?.movies?.map((movie) => (
+          {nowPlaying.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
 
-        {/* On Air TV Shows Section */}
-        <TVShowSection title="📺 On Air TV Shows" items={tvShowData?.shows || []} />
+        <TVShowSection title="📺 On Air TV Shows" items={tvOnTheAir} />
 
-        {/* Pagination */}
         <Pagination
           page={page}
-          totalPages={Math.max(movieData?.totalPages || 1, tvShowData?.totalPages || 1)}
+          totalPages={Math.max(movieTotalPages, tvTotalPages)}
           onPageChange={setPage}
         />
       </div>
