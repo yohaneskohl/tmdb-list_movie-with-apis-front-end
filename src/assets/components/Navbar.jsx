@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutAction } from "../../redux/action/authActions";
+import { logoutAction, syncAuthFromCookies } from "../../redux/action/authActions";
 import { FaSearch } from "react-icons/fa";
 
 const Navbar = ({ setActiveModal }) => {
@@ -25,6 +25,20 @@ const Navbar = ({ setActiveModal }) => {
       setActiveButton(""); // Reset active button setelah login
     }
   }, [user, setActiveModal]); // Dependency hanya pada user dan setActiveModal
+
+  // Cek perubahan pada cookie atau status login/logout
+  useEffect(() => {
+    const handleAuthChange = () => {
+      // Force re-render atau dispatch untuk update state user
+      dispatch(syncAuthFromCookies());
+    };
+
+    window.addEventListener("authChange", handleAuthChange);
+
+    return () => {
+      window.removeEventListener("authChange", handleAuthChange);
+    };
+  }, [dispatch]);
 
   const handleLogout = () => {
     dispatch(logoutAction());

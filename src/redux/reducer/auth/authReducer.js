@@ -4,7 +4,6 @@ import { CookieKeys, CookieStorage } from "../../../utils/Cookies";
 const initialState = {
   user: CookieStorage.get(CookieKeys.User) || null,
   token: CookieStorage.get(CookieKeys.AuthToken) || null,
-  isLoading: false, // ✅ ini harus 'isLoading' biar konsisten
 };
 
 

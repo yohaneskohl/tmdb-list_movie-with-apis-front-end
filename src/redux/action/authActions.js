@@ -1,9 +1,6 @@
 // redux/actions/authActions.js
 import { reduxLoginUser } from "../../services/auth/login_user";
 import { reduxRegisterUser } from "../../services/auth/register_user";
-// import axios from "axios";
-
-// import { reduxLoginWithGoogle } from "../../services/auth/oauth_google";
 import { reduxUpdateUserProfile } from "../../services/auth/update_profile";
 import { setLoading, setToken, setUser } from "../reducer/auth/authReducer";
 import { CookieStorage, CookieKeys } from "../../utils/Cookies";
@@ -97,8 +94,10 @@ export const getUserProfileAction = () => async (dispatch) => {
     console.log("✅ API response:", response);
 
     const user = response.data.data; // ✅ langsung objek user
-    console.log("Parsed user:", user);
 
+    console.log("Parsed user:", user);
+  
+    
     CookieStorage.set(CookieKeys.User, user, {
       expires: getExpirationDate(12),
     });
