@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logoutAction, syncAuthFromCookies } from "../../redux/action/authActions";
-import { FaSearch } from "react-icons/fa";
+import {
+  logoutAction,
+  syncAuthFromCookies,
+} from "../../redux/action/authActions";
+import { FaSearch, FaBars, FaTimes } from "react-icons/fa";
+import MobileDrawer from "./Mobile/MobileSidebar";
 
 const Navbar = ({ setActiveModal }) => {
   const navigate = useNavigate();
@@ -12,56 +16,85 @@ const Navbar = ({ setActiveModal }) => {
   const { user } = useSelector((state) => state.auth);
   const [activeButton, setActiveButton] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [, setWindowWidth] = useState(window.innerWidth);
 
-  // Reset active button saat route berubah
   useEffect(() => {
-    setActiveButton(""); // Reset active button saat route berubah
+    setActiveButton("");
   }, [location.pathname]);
 
-  // Tutup modal otomatis jika user berhasil login
   useEffect(() => {
     if (user) {
-      setActiveModal(null); // Menutup modal login/register jika user sudah login
-      setActiveButton(""); // Reset active button setelah login
+      setActiveModal(null);
+      setActiveButton("");
     }
-  }, [user, setActiveModal]); // Dependency hanya pada user dan setActiveModal
+  }, [user, setActiveModal]);
 
-  // Cek perubahan pada cookie atau status login/logout
   useEffect(() => {
     const handleAuthChange = () => {
-      // Force re-render atau dispatch untuk update state user
       dispatch(syncAuthFromCookies());
     };
-
     window.addEventListener("authChange", handleAuthChange);
-
-    return () => {
-      window.removeEventListener("authChange", handleAuthChange);
-    };
+    return () => window.removeEventListener("authChange", handleAuthChange);
   }, [dispatch]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth >= 768) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleLogout = () => {
     dispatch(logoutAction());
-    navigate("/"); // Redirect ke home setelah logout
+    navigate("/");
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?q=${searchQuery}`);
+      setMenuOpen(false);
     }
   };
+
+  // Function to check if current location is active
+  const isActive = (path) => location.pathname === path;
 
   return (
     <nav className="bg-transparent absolute top-0 left-0 w-full py-4 px-6 z-50">
       <div className="max-w-full mx-auto flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="text-3xl font-bold font-spotify text-red-500">
-          <span className="font-extrabold">Movie</span>list
-        </Link>
+        {/* Logo and Hamburger (Mobile) */}
+        <div className="flex items-center justify-between w-full md:hidden">
+          <div className="flex items-center">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="bg-gray-800 p-2 rounded-full text-white hover:bg-gray-700 transition duration-300"
+            >
+              {menuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+            </button>
+            <Link
+              to="/"
+              className="text-2xl font-bold font-spotify text-red-500 ml-3"
+            >
+              <span className="font-extrabold">Movie</span>list
+            </Link>
+          </div>
+        </div>
 
-        {/* Search Bar */}
-        <div className="w-1/3">
+        {/* Logo (Desktop) */}
+        <div className="hidden md:block">
+          <Link to="/" className="text-3xl font-bold font-spotify text-red-500">
+            <span className="font-extrabold">Movie</span>list
+          </Link>
+        </div>
+
+        {/* Search Bar (Desktop Only) */}
+        <div className="hidden md:block w-1/3">
           <form
             onSubmit={handleSearch}
             className="flex items-center bg-gray-900 border border-gray-700 rounded-full px-4 py-2 focus-within:ring-2 focus-within:ring-red-500"
@@ -82,15 +115,43 @@ const Navbar = ({ setActiveModal }) => {
           </form>
         </div>
 
-        {/* Navigation */}
-        <div className="flex space-x-4 items-center">
-          <Link to="/" className="text-white hover:text-red-500">Home</Link>
-          <Link to="/movies" className="text-white hover:text-red-500">Movies</Link>
-          <Link to="/tv-shows" className="text-white hover:text-red-500">TV Shows</Link>
+        {/* Menu (Desktop Only) */}
+        <div className="hidden md:flex items-center space-x-4">
+          <Link
+            to="/"
+            className={`${
+              isActive("/") ? "text-blue-500" : "text-white"
+            } hover:text-blue-500`}
+          >
+            Home
+          </Link>
+          <Link
+            to="/movies"
+            className={`${
+              isActive("/movies") ? "text-blue-500" : "text-white"
+            } hover:text-blue-500`}
+          >
+            Movies
+          </Link>
+          <Link
+            to="/tv-shows"
+            className={`${
+              isActive("/tv-shows") ? "text-blue-500" : "text-white"
+            } hover:text-blue-500`}
+          >
+            TV Shows
+          </Link>
 
           {user ? (
             <div className="flex space-x-3 items-center">
-              <Link to="/profile" className="text-white hover:text-red-500">Profile</Link>
+              <Link
+                to="/profile"
+                className={`${
+                  isActive("/profile") ? "text-red-500" : "text-white"
+                } hover:text-red-500`}
+              >
+                Profile
+              </Link>
               <button
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-full text-white"
@@ -130,6 +191,19 @@ const Navbar = ({ setActiveModal }) => {
           )}
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      <MobileDrawer
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleSearch={handleSearch}
+        user={user}
+        handleLogout={handleLogout}
+        setActiveModal={setActiveModal}
+        setActiveButton={setActiveButton}
+      />
     </nav>
   );
 };

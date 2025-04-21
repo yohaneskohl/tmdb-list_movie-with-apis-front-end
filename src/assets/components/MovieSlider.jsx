@@ -11,7 +11,7 @@ const MovieSlider = ({ movies }) => {
   }, [movies]);
 
   return (
-    <div className="relative w-full h-[600px] overflow-hidden">
+    <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] overflow-hidden">
       {movies.map((movie, index) => (
         <div
           key={movie.id}
@@ -27,14 +27,16 @@ const MovieSlider = ({ movies }) => {
           />
 
           {/* Overlay Content */}
-          <div className="absolute inset-0 flex flex-col justify-center px-16 text-white">
-            <h1 className="text-5xl font-bold max-w-3xl">{movie.title}</h1>
-            <p className="text-lg text-gray-300 mt-4 max-w-2xl">
+          <div className="absolute inset-0 flex flex-col justify-center px-4 sm:px-8 md:px-16 text-white">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold max-w-3xl leading-tight">
+              {movie.title}
+            </h1>
+            <p className="text-sm sm:text-base md:text-lg text-gray-300 mt-3 sm:mt-4 max-w-2xl line-clamp-4">
               {movie.overview.length > 150
                 ? `${movie.overview.substring(0, 150)}...`
                 : movie.overview}
             </p>
-            <button className="mt-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 max-w-fit">
+            <button className="mt-5 sm:mt-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 max-w-fit">
               <span className="material-symbols-outlined">play_circle</span>
               WATCH TRAILER
             </button>
@@ -42,12 +44,12 @@ const MovieSlider = ({ movies }) => {
         </div>
       ))}
 
-      {/* Slider Indicator - Garis tipis */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      {/* Slider Indicator */}
+      <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
         {movies.map((_, idx) => (
           <span
             key={idx}
-            className={`w-8 h-1 ${
+            className={`w-6 sm:w-8 h-1 cursor-pointer rounded-full ${
               activeIndex === idx ? "bg-red-600" : "bg-gray-500"
             } transition-all`}
             onClick={() => setActiveIndex(idx)}

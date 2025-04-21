@@ -165,7 +165,8 @@ const Profile = () => {
               <>
                 {[ 
                   { label: "Name", value: user.name },
-                  { label: "Email", value: user.email.replace(/(.{2}).+(@.+)/, "$1******$2") },
+                  { label: "Email", value: user.email ? user.email.replace(/(.{2}).+(@.+)/, "$1******$2") : "No email provided" },
+
                   { label: "Bio", value: user.bio || "No bio available" },
                   { label: "Address", value: user.address || "No address available" },
                   { label: "Occupation", value: user.occupation || "No occupation provided" }

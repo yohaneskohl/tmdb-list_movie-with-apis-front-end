@@ -1,4 +1,3 @@
-// pages/Movies.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getNowPlayingMovies } from "../redux/action/movieActions";
@@ -24,7 +23,9 @@ const Movies = () => {
   return (
     <div className="bg-black min-h-screen text-white px-4 pt-20 pb-10">
       <h2 className="text-3xl font-bold mb-6">🔥 Now Playing Movies</h2>
-      <div className="grid grid-cols-5 gap-6">
+
+      {/* Responsive Grid Layout */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {nowPlaying?.map((movie) => (
           <MovieCard key={movie.id} movie={movie} />
         ))}

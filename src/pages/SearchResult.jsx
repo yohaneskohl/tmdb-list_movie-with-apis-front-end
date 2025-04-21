@@ -20,7 +20,9 @@ const SearchResults = () => {
   const { movies, tvShows } = searchResults;
 
   useEffect(() => {
-    dispatch(searchContent({ query: searchQuery }));
+    if (searchQuery) {
+      dispatch(searchContent({ query: searchQuery }));
+    }
   }, [dispatch, searchQuery]);
 
   const hasMovies = movies?.length > 0;
@@ -28,22 +30,22 @@ const SearchResults = () => {
 
   if (!searchQuery) {
     return (
-      <div className="text-center text-gray-400 pt-20">
+      <div className="text-center text-gray-400 pt-20 px-4">
         Please enter a search term.
       </div>
     );
   }
 
   return (
-    <div className="bg-black min-h-screen text-white px-4 pt-20 pb-32">
-      <h2 className="text-3xl font-bold mb-4">
+    <div className="bg-black min-h-screen text-white px-4 sm:px-6 md:px-12 pt-20 pb-32">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center sm:text-left">
         Search Results for &quot;{searchQuery}&quot;
       </h2>
 
       {hasMovies && (
-        <section>
-          <h3 className="text-2xl mb-2">🎬 Movies</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <section className="mb-10">
+          <h3 className="text-xl sm:text-2xl mb-3">🎬 Movies</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {movies.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
@@ -52,9 +54,9 @@ const SearchResults = () => {
       )}
 
       {hasTVShows && (
-        <section className="mt-8">
-          <h3 className="text-2xl mb-2">📺 TV Shows</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <section>
+          <h3 className="text-xl sm:text-2xl mb-3">📺 TV Shows</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {tvShows.map((show) => (
               <TVShowCard key={show.id} show={show} />
             ))}
@@ -63,7 +65,7 @@ const SearchResults = () => {
       )}
 
       {!hasMovies && !hasTVShows && (
-        <p className="text-center text-gray-400">No results found.</p>
+        <p className="text-center text-gray-400 mt-10">No results found.</p>
       )}
     </div>
   );

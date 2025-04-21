@@ -18,10 +18,10 @@ const EntertainmentList = () => {
   } = useSelector((state) => state.movie);
 
   const {
-    tvOnTheAir, // ✅ ambil state ini, bukan `setTVOnTheAir`
+    tvOnTheAir,
     tvTotalPages,
     isLoadingTVOnTheAir: isLoadingTVShows,
-  } = useSelector((state) => state.tvshow); // pastikan `tvshow` sesuai dengan key di `combineReducers`
+  } = useSelector((state) => state.tvshow);
 
   useEffect(() => {
     dispatch(getNowPlayingMovies(page));
@@ -29,28 +29,41 @@ const EntertainmentList = () => {
   }, [dispatch, page]);
 
   if (isLoadingMovies || isLoadingTVShows) {
-    return <p className="text-center text-gray-400">Loading...</p>;
+    return <p className="text-center text-gray-400 py-12">Loading...</p>;
   }
 
   return (
     <div className="bg-black min-h-screen text-white">
+      {/* Slider */}
       <MovieSlider movies={nowPlaying.slice(0, 10)} />
 
-      <div className="px-8 py-12">
-        <h2 className="text-3xl font-bold mb-6">🔥 Now Playing Movies</h2>
-        <div className="grid grid-cols-5 gap-6">
+      {/* Content */}
+      <div className="px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-10">
+        {/* Now Playing Movies */}
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6">
+          🔥 Now Playing Movies
+        </h2>
+
+        {/* Grid Responsif untuk Movie */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {nowPlaying.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
 
-        <TVShowSection title="📺 On Air TV Shows" items={tvOnTheAir} />
+        {/* TV Show Section */}
+        <div className="mt-12">
+          <TVShowSection title="📺 On Air TV Shows" items={tvOnTheAir} />
+        </div>
 
-        <Pagination
-          page={page}
-          totalPages={Math.max(movieTotalPages, tvTotalPages)}
-          onPageChange={setPage}
-        />
+        {/* Pagination */}
+        <div className="mt-10">
+          <Pagination
+            page={page}
+            totalPages={Math.max(movieTotalPages, tvTotalPages)}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
     </div>
   );
