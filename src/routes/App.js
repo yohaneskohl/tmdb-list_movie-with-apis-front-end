@@ -10,7 +10,7 @@ import { apiClient } from "../utils/apiClient";
 import Navbar from "../assets/components/Navbar";
 import EntertainmentList from "../pages/EntertainmentList";
 import Footer from "../assets/components/Footer";
-import Profile from "../assets/components/Profile";
+// import Profile from "../assets/components/Profile";
 import Movies from "../pages/Movies";
 import TVShows from "../pages/TVShows";
 import SearchResults from "../pages/SearchResult";
@@ -19,8 +19,10 @@ import LoginModal from "../pages/LoginModal";
 import RegisterModal from "../pages/RegisterModal";
 import GoogleCallback from "../pages/GoogleCallback";
 import PrivateRoute from "../assets/components/private/PrivateRoute";
+import ProfilePage from "../assets/components/wrapper/ProfilePage";
+import NotFound from "../assets/components/NotFound";
 
-// 
+//
 const syncAuthFromCookies = (dispatch) => {
   const token = CookieStorage.get(CookieKeys.AuthToken);
   const user = CookieStorage.get(CookieKeys.User);
@@ -38,7 +40,6 @@ const syncAuthFromCookies = (dispatch) => {
   }
 };
 
-
 const App = () => {
   const dispatch = useDispatch();
   const [activeModal, setActiveModal] = useState(null);
@@ -46,18 +47,17 @@ const App = () => {
   // ✅ Cuma dengarkan event "authChange"
   useEffect(() => {
     syncAuthFromCookies(dispatch); // pertama kali load
-  
+
     const handleAuthChange = () => {
       syncAuthFromCookies(dispatch); // setiap kali event terjadi
     };
-  
+
     window.addEventListener("authChange", handleAuthChange);
-  
+
     return () => {
       window.removeEventListener("authChange", handleAuthChange);
     };
   }, [dispatch]);
-  
 
   return (
     <Router>
@@ -75,16 +75,23 @@ const App = () => {
 
             {/* Private Route */}
             <Route element={<PrivateRoute />}>
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
+
+            {/* Not Found Catch-All */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
 
         <Footer />
 
         {/* Modal Login & Register */}
-        {activeModal === "login" && <LoginModal setActiveModal={setActiveModal} />}
-        {activeModal === "register" && <RegisterModal setActiveModal={setActiveModal} />}
+        {activeModal === "login" && (
+          <LoginModal setActiveModal={setActiveModal} />
+        )}
+        {activeModal === "register" && (
+          <RegisterModal setActiveModal={setActiveModal} />
+        )}
       </div>
     </Router>
   );

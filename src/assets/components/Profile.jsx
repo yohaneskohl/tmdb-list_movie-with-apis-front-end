@@ -184,11 +184,6 @@ const Profile = () => {
           </div>
         </div>
       </div>
-
-      {/* Footer
-      <footer className="bg-gray-800 text-white py-4">
-        <div className="text-center">Footer Content</div>
-      </footer> */}
     </div>
   );
 };

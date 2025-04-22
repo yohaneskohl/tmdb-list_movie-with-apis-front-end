@@ -32,3 +32,18 @@ input:-webkit-autofill:focus {
   background-color: transparent !important;
   color: white !important;
 }
+
+/* custom profile mobile*/
+/* Kalau pakai Tailwind JIT bisa pake @apply */
+.floating-input {
+  @apply w-full bg-transparent border-b border-gray-600 text-white placeholder-transparent focus:outline-none focus:border-[#E50914] px-1 pt-5 pb-1 text-sm;
+}
+
+.floating-label {
+  @apply absolute left-1 top-1.5 text-gray-400 text-xs transition-all duration-300 pointer-events-none;
+}
+
+.floating-input:focus + .floating-label,
+.floating-input:not(:placeholder-shown) + .floating-label {
+  @apply -translate-y-4 scale-90 text-[#E50914];
+}
