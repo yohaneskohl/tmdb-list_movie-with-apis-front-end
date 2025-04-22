@@ -64,7 +64,7 @@ const App = () => {
       <div className="bg-gray-900 min-h-screen text-white">
         <Navbar setActiveModal={setActiveModal} />
 
-        <main className="px-2 py-1 min-h-screen flex flex-col">
+        <main className=" min-h-screen flex flex-col">
           <Routes>
             <Route path="/" element={<EntertainmentList />} />
             <Route path="/movies" element={<Movies />} />
